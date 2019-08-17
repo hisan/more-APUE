@@ -1,0 +1,9 @@
+/*2019-08-17
+/*天津西青
+/*张云波
+
+编码准备工作：
+	将apue.3e中的 /lib/error.c 复制为myerrror.h,
+	将myerrror.h与/include/apue.h一同复制到系统目录：/user/include/ 下。
+	以后在编程中，需要比代码示例多添加一个头文件#include "myerror.h" ，这样就可以编译通过。
+*/
