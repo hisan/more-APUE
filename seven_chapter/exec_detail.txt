@@ -1,0 +1,9 @@
+理解一下int main(int argc,cahr**argv);
+:我们在shell下执行一个程序的步骤一般是：
+ ./program <argv[1]> <argv[2]> ...<...>,
+ 此时，shell调用启动函数exec，并将命令行参数<>,<>,...<>传递给该要启动的新进程
+ 
+ 
+ 
+ 
+ 
