@@ -9,14 +9,7 @@
 #define ERR 0
 #define OK  1
 
-#define NAMELEN 30
-#define ADDRLEN 30
-#define TELLEN	15
-#define SALLEN 10
-#define TIMELEN 10
-#define SCALELEN 5
-#define TWODAYLEN 5
-#define ONEDAYLEN 5
+#define NAMELEN 80
 
 typedef struct st_map
 {
@@ -51,24 +44,24 @@ int MapInit(NameValue *pNameMap)
 xmlDocPtr CreateXmlBaseDoc()
 {
 	xmlDocPtr doc = xmlNewDoc(CAST"1.0");
+	
 	xmlNodePtr root = xmlNewNode(NULL,CAST"DataBase");
 	xmlDocSetRootElement(doc,root);
+	
 	xmlNodePtr ComPanys = xmlNewNode(NULL,CAST"ComPanys");
 	xmlAddChild(root,ComPanys);
 	
 	return doc;
 }
 
-int InSertJobxmlfile(xmlDocPtr Doc,NameValue *pNameMap,const int PropNum)
+int InSertJobxmlfile(xmlDocPtr doc,NameValue *pNameMap,const int PropNum)
 {
-	xmlDocPtr doc 		= NULL;
 	xmlNodePtr root 	= NULL;
 	xmlNodePtr ComPanys = NULL;
 	xmlNodePtr ComPany  = NULL;
 	
 	int count = 0;
 	
-	doc = Doc;
 	if (doc == NULL)
 	{
 		fprintf(stderr,"no such file\r\n");
@@ -85,26 +78,17 @@ int InSertJobxmlfile(xmlDocPtr Doc,NameValue *pNameMap,const int PropNum)
 	ComPanys = root->children;
 	
 	ComPany = xmlNewNode(NULL,CAST"ComPany");
-	for (count = 0; count < PropNum; count++)
+	for (;count <PropNum;count++)
 	{
 		xmlNewProp(ComPany, CAST pNameMap->p1[count], CAST pNameMap->p2[count]);
 	}
 	
-	xmlNodePtr ChildNode = ComPanys->children;
-	
-	if (ChildNode == NULL)
-	{
-		xmlAddChild(ComPanys,ComPany);
-	}
-	else 
-	{
-		xmlAddSibling(ChildNode,ComPany);
-	}
+	xmlAddChild(ComPanys,ComPany);
 	
 	return OK;
 }
 
-xmlNodePtr FinComPanyNodeByName(const char *filename,const char *pName,xmlDocPtr* Doc)
+xmlDocPtr XmlDocInit(const char *filename)
 {
 	xmlDocPtr doc = xmlReadFile(filename,"UTF-8",XML_PARSE_RECOVER);
 	if (doc == NULL)
@@ -112,14 +96,17 @@ xmlNodePtr FinComPanyNodeByName(const char *filename,const char *pName,xmlDocPtr
 		doc = CreateXmlBaseDoc();
 	}
 	
-	xmlNodePtr root = xmlDocGetRootElement(doc);
+	return doc;
+}
+
+xmlNodePtr FinComPanyNodeByName(const char *pName,xmlDocPtr Doc)
+{
+	xmlNodePtr root = xmlDocGetRootElement(Doc);
 	if (root == NULL)
 	{
 		fprintf(stderr,"error root!\n");
 		return ERR;
 	}
-	
-	*Doc = doc;
 	
 	xmlNodePtr ComPanys = root->children;
 	xmlNodePtr cur = ComPanys->children;
@@ -149,7 +136,6 @@ int main()
 	char tempbuf[1024] = {0};
 	int count = 0;
 	char *pName,*pAddr,*pTel,*pSal,*pTime,*pScale,*pTd,*pOd;	
-	char Name[30] = {0};
 	
 	pNameMap = NULL;
 	pNameMap = malloc(sizeof(NameValue));
@@ -158,65 +144,105 @@ int main()
 	
 	xmlKeepBlanksDefault(0);
 	
-	
-	
 	FILE *fp = fopen(argv1,"r");
-	
+	int j = 0;
 	if (fp == NULL)
 	{
 		fprintf(stderr,"ERR:open inputfile failed\r\n");
 		return ERR;
 	}
+	
+	doc =  XmlDocInit(argv2);
 
 	while(fgets(tempbuf,sizeof(tempbuf),fp)!=NULL)
 	{
 		memset(pNameMap->p2,0,sizeof(pNameMap->p2));
 		count = 0;
 		
-		pName = strstr(tempbuf,"Name:");
-		strncpy(pNameMap->p2[count],pName+5,sizeof(char)*NAMELEN);
-		strncpy(Name,pName+5,NAMELEN);
-		pNameMap->p2[count][strlen(pNameMap->p2[count])] = '\0';
+		pName = strstr(tempbuf,"Name:");		
+		pAddr = strstr(tempbuf,"Address:");		
+		pTel = strstr(tempbuf,"Tel:");		
+		pSal = strstr(tempbuf,"Sal:");
+		pTime = strstr(tempbuf,"Time:");
+		pScale = strstr(tempbuf,"Scale:");
+		pTd = strstr(tempbuf,"Two-day-w:");
+		pOd = strstr(tempbuf,"One-day-w:");
+
+
+		pName += 5;
+		j = 0;
+		while( pName != pAddr)
+		{
+			pNameMap->p2[count][j++] = *pName;
+			pName++;
+		}
 		count++;
 	
-		pAddr = strstr(tempbuf,"Address:");
-		strncpy(pNameMap->p2[count],pAddr+8,sizeof(char)*ADDRLEN);
-		pNameMap->p2[count][strlen(pNameMap->p2[count])] = '\0';
+		pAddr += 8;
+		j = 0;
+		while( pAddr != pTel)
+		{
+			pNameMap->p2[count][j++] = *pAddr;
+			pAddr++;
+		}
 		count++;
 
-		pTel = strstr(tempbuf,"Tel:");
-		strncpy(pNameMap->p2[count],pTel+4,sizeof(char)*TELLEN);
-		pNameMap->p2[count][strlen(pNameMap->p2[count])] = '\0';
+		pTel += 4;
+		j = 0;
+		while( pTel != pSal)
+		{
+			pNameMap->p2[count][j++] = *pTel;
+			pTel++;
+		}
 		count++;
 
-		pSal = strstr(tempbuf,"Sal:");
-		strncpy(pNameMap->p2[count],pSal+4,sizeof(char)*SALLEN);
-		pNameMap->p2[count][strlen(pNameMap->p2[count])] = '\0';
+		pSal += 4;
+		j = 0;
+		while( pSal != pTime)
+		{
+			pNameMap->p2[count][j++] = *pSal;
+			pSal++;
+		}
 		count++;
 
-		pTime = strstr(tempbuf,"Time:");
-		strncpy(pNameMap->p2[count],pTime+5,sizeof(char)*TIMELEN);
-		pNameMap->p2[count][strlen(pNameMap->p2[count])] = '\0';
+		pTime += 5;
+		j = 0;
+		while( pTime != pScale)
+		{
+			pNameMap->p2[count][j++] = *pTime;
+			pTime++;
+		}
 		count++;
 
-		pScale = strstr(tempbuf,"Scale:");
-		strncpy(pNameMap->p2[count],pScale+6,sizeof(char)*SCALELEN);
-		pNameMap->p2[count][strlen(pNameMap->p2[count])] = '\0';
+		pScale += 6;
+		j = 0;
+		{
+			pNameMap->p2[count][j++] = *pScale;
+			pScale++;
+		}
 		count++;
 
-		pTd = strstr(tempbuf,"Two-day-w:");
-		strncpy(pNameMap->p2[count],pTd+10,sizeof(char)*TWODAYLEN);
-		pNameMap->p2[count][strlen(pNameMap->p2[count])] = '\0';
+		pTd += 10;
+		j = 0;
+		while( pTd != pOd)
+		{
+			pNameMap->p2[count][j++] = *pTd;
+			pTd++;
+		}
 		count++;
 
-		pOd = strstr(tempbuf,"One-day-w:");
-		strncpy(pNameMap->p2[count],pOd+10,sizeof(char)*ONEDAYLEN);
-		pNameMap->p2[count][strlen(pNameMap->p2[count])] = '\0';
+		pOd += 10;
+		j = 0;
+		while( *pOd != '\n')
+		{
+			pNameMap->p2[count][j++] = *pOd;
+			pOd++;
+		}
 		count++;
 
 		xmlNodePtr cur = NULL;
 		
-		if ( (cur = FinComPanyNodeByName(argv2,Name,&doc)) != NULL)
+		if ( (cur = FinComPanyNodeByName(pNameMap->p2[0],doc)) != NULL)
 		{
 			//修改
 			xmlUnlinkNode(cur);
@@ -233,15 +259,3 @@ int main()
 	
 	return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
