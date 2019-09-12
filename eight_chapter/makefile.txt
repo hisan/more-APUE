@@ -1,2 +1,0 @@
-gcc -g xmltest.c -I/usr/local/include/libxml2/ -L/usr/local/lib -o xmltest
-

@@ -1,1 +1,1 @@
-gcc -I /usr/local/include/libxml2 -L /usr/local/lib -lxml2 -lz -lm  -o xmltest xmltest.c
+gcc -g -Wall -I /usr/local/include/libxml2 -L/usr/local/lib -lxml2 -lm  -o mydataXml xmltest.c
