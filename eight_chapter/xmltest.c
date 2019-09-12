@@ -127,6 +127,69 @@ xmlNodePtr FinComPanyNodeByName(const char *pName,xmlDocPtr Doc)
 	return NULL;
 }
 
+int TransDocToContentTxt(const char *filename,const char *xmlfilename)
+{
+	xmlDocPtr 	doc =NULL;
+	xmlNodePtr  root = NULL;
+	xmlNodePtr  ComPanys = NULL;
+	xmlNodePtr	cur = NULL;
+	char tempbuf[200] = {0};
+	
+	FILE *fp  = fopen(filename,"w");
+	
+	doc = xmlReadFile(xmlfilename,"UTF-8",XML_PARSE_RECOVER);
+	if (doc == NULL)
+	{
+		fprintf(stderr,"no such xml file\r\n");
+		
+		return ERR;
+	}
+	
+	root = xmlDocGetRootElement(doc);
+	if (root == NULL)
+	{
+		fprintf(stderr,"error root!\n");
+		return ERR;
+	}
+	
+	ComPanys = root->children;
+	cur = ComPanys->children;
+	
+	while(cur!=NULL)
+	{
+		xmlChar* pName = xmlGetProp(cur,CAST"Name");
+		xmlChar* pAddr = xmlGetProp(cur,CAST"Address");
+		xmlChar* pTel = xmlGetProp(cur,CAST"Tel");
+		xmlChar* pSal = xmlGetProp(cur,CAST"Sal");
+		xmlChar* pTime = xmlGetProp(cur,CAST"Time");
+		xmlChar* pScale = xmlGetProp(cur,CAST"Scale");
+		xmlChar* pTd = xmlGetProp(cur,CAST"Two-day-w");
+		xmlChar* pOd = xmlGetProp(cur,CAST"One-day-w");
+		
+		memset(tempbuf,0,sizeof(char)*200);
+		
+		sprintf(tempbuf,"Name:%s Address:%s Tel:%s Sal:%s Time:%s Scale:%s Two-day-w:%s \
+		One-day-w:%s",pName,pAddr,pTel,pSal,pTime,pScale,pTd,pOd);
+		tempbuf[strlen(tempbuf)] = '\n';
+		
+		fputs(tempbuf,fp);
+		
+		xmlFree(pName);
+		xmlFree(pAddr);
+		xmlFree(pTel);
+		xmlFree(pSal);
+		xmlFree(pTime);
+		xmlFree(pScale);
+		xmlFree(pTd);
+		xmlFree(pOd);
+		
+		cur = cur->next;
+	}
+	
+	return OK;
+}
+
+
 int main()
 {
 	const char *argv1 = "data.txt";
@@ -256,6 +319,9 @@ int main()
 	}
 	
 	xmlSaveFileEnc(argv2,doc,"UTF-8");
+	free(pNameMap);
+	
+	TransDocToContentTxt("allInfo.txt",argv2);
 	
 	return 0;
 }

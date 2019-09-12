@@ -1,0 +1,4 @@
+Name:Google     Address:美国加利福利亚州圣克拉县      Tel:08716635656     Sal:25k        Time:8:30-6:00  Scale:1 Two-day-w: Yes   		One-day-w: No  
+Name:阿里巴巴     Address:杭州市      Tel:08716635656     Sal:25k        Time:8:30-6:00  Scale:1 Two-day-w: Yes   		One-day-w: No  
+Name:百度     Address:北京市      Tel:08716635656     Sal:25k        Time:8:30-6:00  Scale:1 Two-day-w: Yes   		One-day-w: No  
+Name:腾讯音乐     Address:深圳市      Tel:08716635656     Sal:25k        Time:8:30-6:00  Scale:1 Two-day-w: Yes   		One-day-w: No  
