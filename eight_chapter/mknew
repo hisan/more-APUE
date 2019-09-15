@@ -1,0 +1,8 @@
+#!/usr/bin/awk -f
+#note:这么干的原因是因为，我们执行mknew时，不想让别人知道这是一个解释器文件，不然我们要执行mknew只能执行为 awk -f mknew,这样
+#一看就知道是解释器文件了。
+BEGIN {
+	for (i = 0 ; i < ARGC ;i++)
+		printf "ARGV[%d] = %s\n",i, ARGV[i]
+	exit
+}
