@@ -1,0 +1,15 @@
+#!/bin/bash
+#统计某个目录下的所有代码文件中的代码行
+Dir="/home"
+list=$(ls -R $Dir)
+for curdir in $list
+do 
+        if [ -f "$curdir" ]
+	then
+		if [[ "$curdir" == *.c ]]
+		then echo "num:" $(wc -l $curdir)
+		elif [[ "$curdir" == *.h ]]
+		then echo "num:" $(wc -l $curdir)
+		fi
+        fi
+done
