@@ -1,0 +1,27 @@
+//相关API一览
+int pthread_equal(pthread_t tid1,pthread_t tid2);//比较线程id
+
+pthread_t pthread_self(void);//获取自身线程id
+
+int pthread_create(pthread_t *restrict tidp,
+					const pthread_attr_t *restrict attr,
+					void *(*start_rtn)(void *),void *restrict arg);
+//创建线程，将起id赋给tidp指向的内存空间，给线程赋以attr代表的属性，线程启动后从函数指针start_rtn指向的地址开始执行，参数为arg)
+
+//新创建的线程可以访问进程地址空间并且继承调用线程的浮点环境和信号屏蔽字，但是该线程的挂起信号集会被清楚
+
+//每个线程都提供errno的副本
+
+//线程正常终止
+
+1.从启动例程返回，返回值是线程的退出码，	rval_ptr指向的内存包含此返回码
+2.线程可以被统一进程中的其他线程取消，		rval_ptr指向的内存单元被设置为PTHREAD_CANCELED
+3.线程调用pthread_exit();					rval_ptr指向的内存包含此返回码
+
+
+void pthread_exit(void *rval_ptr);//ptr为传给启动例程函数参数，进程中的其他函数可以通过调用pthread_join访问到这个指针
+int pthread_join(pthread_t thread,void **rval_ptr);
+
+//调用线程将一直阻塞，直到指定的线程终止（三方法）
+
+
