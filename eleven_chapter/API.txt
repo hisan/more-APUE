@@ -40,9 +40,33 @@ void pthread_cleanup_pop(int execute);	//如果线程是在它的启动例程中
 
 int pthread_detach(pthread_t tid);	//调用它来分离线程
 
+//注意:如果设置一个线程为分离线程，而这个线程运行又非常快，它很可能在pthread_create函数返回之前就终止了，
+//它终止以后就可能将线程号和系统资源移交给其他的线程使用，这样调用pthread_create的线程就得到了错误的线程号。
+//要避免这种情况可以采取一定的同步措施，最简单的方法:
+(1)是可以在被创建的线程里调用pthread_cond_timewait函数
+(2)
+
 //如果线程已经被分离，线程的底层存储资源可以在线程终止时立即被收回(即使动态分配并且不释放的资源吗？)
 
 //在线程被分离后，我们不能用pthread_join函数等待它的终止状态，会发生未定义形为
+
+
+//线程同步
+1.互斥量	pthread_mutex_t	(也分静动态，动态互斥量要调用pthread_mutex_destroy()来释放）
+	对互斥量上锁后，任何企图对互斥量再次加锁的线程都会被阻塞，直到相应线程对该互斥量解锁
+	当占有互斥量的线程释放该互斥量时，所有阻塞在该互斥量上的线程在互斥量被其他线程再次占有前都会变成可运行状态...
+	
+pthread_mutex_t *pmutex = malloc(sizeof(pthread_mutex_t));
+
+int pthread_mutex_init(pthread_mutex_t *pmutex);
+
+int pthread_mutex_lock(pthread_mutex_t *pmutext);
+
+int pthread_mutex_trylock(pthread_mutex_t *pmutext);//尝试加锁，避免阻塞
+
+int pthread_mutex_unlock(pthread_mutex_t *pmutext);
+
+	
 
 
 
