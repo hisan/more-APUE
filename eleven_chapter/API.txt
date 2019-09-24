@@ -20,8 +20,33 @@ int pthread_create(pthread_t *restrict tidp,
 
 
 void pthread_exit(void *rval_ptr);//ptr为传给启动例程函数参数，进程中的其他函数可以通过调用pthread_join访问到这个指针
-int pthread_join(pthread_t thread,void **rval_ptr);
+int pthread_join(pthread_t thread,void **rval_ptr);//等待线程thread终止
 
 //调用线程将一直阻塞，直到指定的线程终止（三方法）
+
+
+int pthread_cancle(pthread_t pthread);//线程可以通过调用ta来取消同一进程的其他线程。等同于调用了参数为PTHREAD_CANCELED的pthread_exit函数
+//pthread_cancle并不等待线程终止，仅提出请求。
+//线程可以选择忽略取消或者控制如何被取消
+//线程可以安排它退出时的调用函数(线程清理处理程序),一个线程可以建立多个线程清理处理程序（处理程序记录在栈中）
+
+void pthread_cleanup_push(void (*rtn)(void*),void *arg);//调度线程清理函数
+调用情形
+//调用pthread_exit时
+//响应取消请求时
+//用非0execute参数调用pthread_cleanup_pop函数时
+
+void pthread_cleanup_pop(int execute);	//如果线程是在它的启动例程中返回（return)而终止的话，就不会被调用,要pthread_exit(0)才会
+
+int pthread_detach(pthread_t tid);	//调用它来分离线程
+
+//如果线程已经被分离，线程的底层存储资源可以在线程终止时立即被收回(即使动态分配并且不释放的资源吗？)
+
+//在线程被分离后，我们不能用pthread_join函数等待它的终止状态，会发生未定义形为
+
+
+
+
+
 
 
