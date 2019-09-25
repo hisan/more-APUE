@@ -1,57 +1,57 @@
-//相关API一览
-int pthread_equal(pthread_t tid1,pthread_t tid2);//比较线程id
+相关API一览
+int pthread_equal(pthread_t tid1,pthread_t tid2);比较线程id
 
-pthread_t pthread_self(void);//获取自身线程id
+pthread_t pthread_self(void);获取自身线程id
 
 int pthread_create(pthread_t *restrict tidp,
 					const pthread_attr_t *restrict attr,
 					void *(*start_rtn)(void *),void *restrict arg);
-//创建线程，将起id赋给tidp指向的内存空间，给线程赋以attr代表的属性，线程启动后从函数指针start_rtn指向的地址开始执行，参数为arg)
+创建线程，将起id赋给tidp指向的内存空间，给线程赋以attr代表的属性，线程启动后从函数指针start_rtn指向的地址开始执行，参数为arg)
 
-//新创建的线程可以访问进程地址空间并且继承调用线程的浮点环境和信号屏蔽字，但是该线程的挂起信号集会被清楚
+新创建的线程可以访问进程地址空间并且继承调用线程的浮点环境和信号屏蔽字，但是该线程的挂起信号集会被清楚
 
-//每个线程都提供errno的副本
+每个线程都提供errno的副本
 
-//线程正常终止
+线程正常终止
 
 1.从启动例程返回，返回值是线程的退出码，	rval_ptr指向的内存包含此返回码
 2.线程可以被统一进程中的其他线程取消，		rval_ptr指向的内存单元被设置为PTHREAD_CANCELED
 3.线程调用pthread_exit();					rval_ptr指向的内存包含此返回码
 
 
-void pthread_exit(void *rval_ptr);//ptr为传给启动例程函数参数，进程中的其他函数可以通过调用pthread_join访问到这个指针
-int pthread_join(pthread_t thread,void **rval_ptr);//等待线程thread终止
+void pthread_exit(void *rval_ptr);ptr为传给启动例程函数参数，进程中的其他函数可以通过调用pthread_join访问到这个指针
+int pthread_join(pthread_t thread,void **rval_ptr);等待线程thread终止
 
-//调用线程将一直阻塞，直到指定的线程终止（三方法）
+调用线程将一直阻塞，直到指定的线程终止（三方法）
 
 
-int pthread_cancle(pthread_t pthread);//线程可以通过调用ta来取消同一进程的其他线程。等同于调用了参数为PTHREAD_CANCELED的pthread_exit函数
-//pthread_cancle并不等待线程终止，仅提出请求。
-//线程可以选择忽略取消或者控制如何被取消
-//线程可以安排它退出时的调用函数(线程清理处理程序),一个线程可以建立多个线程清理处理程序（处理程序记录在栈中）
+int pthread_cancle(pthread_t pthread);线程可以通过调用ta来取消同一进程的其他线程。等同于调用了参数为PTHREAD_CANCELED的pthread_exit函数
+pthread_cancle并不等待线程终止，仅提出请求。
+线程可以选择忽略取消或者控制如何被取消
+线程可以安排它退出时的调用函数(线程清理处理程序),一个线程可以建立多个线程清理处理程序（处理程序记录在栈中）
 
-void pthread_cleanup_push(void (*rtn)(void*),void *arg);//调度线程清理函数
+void pthread_cleanup_push(void (*rtn)(void*),void *arg);调度线程清理函数
 调用情形
-//调用pthread_exit时
-//响应取消请求时
-//用非0execute参数调用pthread_cleanup_pop函数时
+调用pthread_exit时
+响应取消请求时
+用非0execute参数调用pthread_cleanup_pop函数时
 
-void pthread_cleanup_pop(int execute);	//如果线程是在它的启动例程中返回（return)而终止的话，就不会被调用,要pthread_exit(0)才会
+void pthread_cleanup_pop(int execute);	如果线程是在它的启动例程中返回（return)而终止的话，就不会被调用,要pthread_exit(0)才会
 
-int pthread_detach(pthread_t tid);	//调用它来分离线程
+int pthread_detach(pthread_t tid);	调用它来分离线程
 
-//注意:如果设置一个线程为分离线程，而这个线程运行又非常快，它很可能在pthread_create函数返回之前就终止了，
-//它终止以后就可能将线程号和系统资源移交给其他的线程使用，这样调用pthread_create的线程就得到了错误的线程号。
-//要避免这种情况可以采取一定的同步措施，最简单的方法:
+注意:如果设置一个线程为分离线程，而这个线程运行又非常快，它很可能在pthread_create函数返回之前就终止了，
+它终止以后就可能将线程号和系统资源移交给其他的线程使用，这样调用pthread_create的线程就得到了错误的线程号。
+要避免这种情况可以采取一定的同步措施，最简单的方法:
 (1)是可以在被创建的线程里调用pthread_cond_timewait函数
 (2)
 
-//如果线程已经被分离，线程的底层存储资源可以在线程终止时立即被收回(即使动态分配并且不释放的资源吗？)
+如果线程已经被分离，线程的底层存储资源可以在线程终止时立即被收回(即使动态分配并且不释放的资源吗？)
 
-//在线程被分离后，我们不能用pthread_join函数等待它的终止状态，会发生未定义形为
+在线程被分离后，我们不能用pthread_join函数等待它的终止状态，会发生未定义形为
 
 
-//线程同步
+线程同步
 1.互斥量	pthread_mutex_t	(也分静动态，动态互斥量要调用pthread_mutex_init()来初始化和pthread_mutex_destroy()来释放）
 	对互斥量上锁后，任何企图对互斥量再次加锁的线程都会被阻塞，直到相应线程对该互斥量解锁
 	当占有互斥量的线程释放该互斥量时，所有阻塞在该互斥量上的线程在互斥量被其他线程再次占有前都会变成可运行状态...
@@ -62,46 +62,49 @@ int pthread_mutex_init(pthread_mutex_t *pmutex);
 
 int pthread_mutex_lock(pthread_mutex_t *pmutext);
 
-int pthread_mutex_trylock(pthread_mutex_t *pmutext);//尝试加锁，避免阻塞、死锁
+int pthread_mutex_trylock(pthread_mutex_t *pmutext);尝试加锁，避免阻塞、死锁
 
 int pthread_mutex_unlock(pthread_mutex_t *pmutext);
 
 	
 int pthread_mutex_timedlock(pthread_mutext_t *restrict mutext,
-								const struct timespec *restrict tsptr);//绑定线程阻塞时间，避免长时间因访问互斥量而阻塞
+								const struct timespec *restrict tsptr);绑定线程阻塞时间，避免长时间因访问互斥量而阻塞
 								
-//读写锁
+2.读写锁(允许更高的并行性) 	pthrea_rwlock_t (读 > 写)  PTHREAD_RWLOCK_INITIALIZER(对静态分配的共享互斥锁进行初始化)
+	2.1 当读写锁在加锁状态时，希望以写模式对此锁进行加锁的线程都会进行阻塞。
+	2.2 为了避免读模式一直占有读写锁，当读写锁被读模式占有时，若有一个线程以写模式试图访问此锁时，就会造成之后任何试图以读模式访问读写锁的线程的阻塞
+	2.3 与互斥量相比，读写锁在使用之前必须初始化，在释放它们底层的内存之前必须销毁
+	pthread_rwlock_init(pthread_rwlock_t *prwlock,const pthread_rwlockattr_t *restrict attr);
+	pthread_rwlock_destroy(pthread_rwlock_t *prwlock);
+
+	int pthread_rwlock_rdlock(pthread_rwlock_t *prwlock);
+	int pthread_rwlock_wrlock(pthread_rwlock_t *prwlock);
+	int pthread_rwlock_unlock(pthread_rwlock_t *prwlocK);
+	
+	int pthread_rwlock_tryrdlock(pthread_rwlock_t *prwlock);	//有的实现可能会限制可获取的读写锁次数	因此，使用此接口判断读写锁是否还能获取
+	int pthread_rw_lock_trywrlock(pthread_rwlock_t *prwlock);
+
+	int pthread_rwlock_timedrdlock(pthread_rwlock_t *restrict rwlock,
+										const struct timespec *restrict tsptr);
+										
+	int pthread_wrlock_timedrdlock(pthread_rwlock_t *restrict rwlock,
+										const struct timespec *restrict tsptr);//同上
+										
 
 
+3.条件变量	pthread_cond_t	使用之前必须先初始化，PTHREAD_COND_INITIALIZER(对静态分配的条件变量进行初始化)
+	条件变量和互斥量一起使用，允许线程以无竞争的方式等待特定的条件发生。
+	条件本身是由互斥量保护的，线程在改变条件状态之前必须首先锁住互斥量。
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	int pthread_cond_init(pthread_cond_t *cond,
+			const pthread_condattr_t *restrict attr);
+	int pthread_cond_destroy(pthread_cond_t *cond);
+	
+	int pthread_cond_wait(pthread_cond_t *restrict cond,pthread_mutex_t *mutex);//等待条件变为真
+	int pthread_cond_timedwait(pthread_cond_t *restrict cond,
+								pthread_mutex_t *mutex,
+								const struct timespec *restrict tsptr );//在一段时间内等待条件变为真
+	
 
 
 

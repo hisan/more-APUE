@@ -10,7 +10,7 @@ int main(void)
 	char buf[64];
 	
 	pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-	pthread_mutex_lock(lock);
+	pthread_mutex_lock(&lock);
 	printf("locked!\r\nb");
 	
 	clock_gettime(CLOCK_REALTIME,&tout);
