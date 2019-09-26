@@ -105,6 +105,43 @@ int pthread_mutex_timedlock(pthread_mutext_t *restrict mutext,
 								pthread_mutex_t *mutex,
 								const struct timespec *restrict tsptr );//在一段时间内等待条件变为真
 	
+	//通知线程条件已满足（一定要在改变条件状态后给线程发信号
+	int pthread_cond_signal(pthread_cond_t *cond);		//至少能唤醒一个等待该条件的线程
+	int pthread_cond_broadcast(pthread_cond_t *cond);	//唤醒所有等待该条件的线程
+	
+	
+4.自旋锁	与互斥量类似，但是并不是通过休眠使线程阻塞，而是在获取锁之前一直处于忙等阻塞状态
+			适用于锁被持有时间短，而且线程并不希望在重新调度上花销过大(你等会儿，我马上就好!)
+			
+int pthread_spin _init(pthread_spinlock_t *spin,int pshared);
+//当pshared被设置成PTHREAD_PROCESS_SHARED(进程共享属性),则自旋锁能被可以访问底层内存的线程所获取，即使这些线程属于不同的进程
+//反之，PTHREAD_SHARED_PRIVATE
+
+int pthread_spin_destroy(pthread_spinlock_t *lock);
+
+//返回0表示自旋锁被加锁
+int pthread_spin_lock(pthread_spinlock_t *psin);
+int pthread_spin_trylock(pthread_spinlock_t *spin);
+
+int pthread_spin_unlock(pthread_spinlock_t *spin);
+
+
+
+5.屏障	用户协调多个线程并行工作的同步机制，屏障允许任意数量的线程等待，直到所有的合作线程都到达每一点(完成处理工作)，然后从该点继续执行(继续工作)
+
+int pthread_barrier_init(pthread_barrier_t *restrict barrier,
+						const pthread_barrierarrt_t *restrict attr,
+										unsigned int count);//count：屏蔽计数
+int pthread_barrier_destroy(pthread_barrier_t *restrict barrier);
+
+int pthread_barrier_wait(pthread_barrier_t *barrier);	//线程已完成工作，准备等所有其他线程赶上来(若屏蔽计数未满足，就会休眠)
+如果该线程是最后一个调用此函数的线程，就满足了屏蔽计数，所有的线程被唤醒
+
+
+
+
+
+
 
 
 
