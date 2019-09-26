@@ -6,6 +6,8 @@ int
 main(void)
 {
 	DBHANDLE	db;
+		
+	char *buff = NULL;
 
 	if ((db = db_open("db4", O_RDWR | O_CREAT | O_TRUNC,
 	  FILE_MODE)) == NULL)
@@ -17,6 +19,10 @@ main(void)
 		err_quit("db_store error for beta");
 	if (db_store(db, "gamma", "record3", DB_INSERT) != 0)
 		err_quit("db_store error for gamma");
+
+	if ((buff = db_fetch(db,"beta")) == NULL)
+		err_quit("db_fetch failed for beta");
+	printf("%s",buff);
 
 	db_close(db);
 	exit(0);
