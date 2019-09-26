@@ -35,5 +35,3 @@ static void sig_usr(int signo)
 		err_dump("received signal %d\n",signo);
 	}
 }
-
-
