@@ -1,0 +1,119 @@
+重入:
+1.以线程安全的方式管理FILE对象
+	int ftrylockfile(FILE *fp);
+	int flockfile(FILE *fp);
+	int funlcokfile(FILE *fp);
+	
+	1.1不加锁版本的的基于字符的标准I/O例程
+	int getchar_unlocked(void);
+	int getc_unclocked(FILE *fp);
+	
+	int putchar_unlocked(int c);
+	int putc_unclocked(int c,FILE *fp);
+
+2.线程私有数据：是存储和查询某个特定线程相关数据的一种机制
+	(我们这样称呼是因为我们希望每个线程都可以访问她自己单独的数据副本，而不需担心与其他线程的同步访问问题)
+	
+	在分配线程特定数据前,得创建与该数据关联的键，用于获取线程对特定数据的访问，使用pthread_key_create
+	int pthread_key_create(pthread_key_t *keyp,void (*destructor)(void*));
+		创建的键存储在keyp指向的内存单元中，可被进程中的所有线程使用，但每个线程把这个键与不同线程的特定数据进行关联
+		创建新键时，每个线程的数据地址设为空值。
+		除此之外，还创建一个可选择的析构函数。(当这个线程退出时，如果数据地址已被置为非空值，那么析构函数就会被调用)
+	
+	int pthread_key_delete(pthread_key_t *keyp);//取消键与线程特定数据的关联
+	
+	
+	pthread_once_t initflag = PTHREAD_ONCE_INIT;
+	int pthread_once(pthread_once_t &initflag,void (*initfn)(void));//initflag必须为一个非本地变量，而且必须初始化为PTHREAD_ONCE_INIT,
+	
+	//键一旦创建以后，就可以通过调用pthread_setspecific函数将键和线程特定数据关联。
+	int *pthread_getspecific(pthread_key_t *key);
+	int pthread_setspecific(pthread_key_t key,const void *value);
+	
+	
+3.取消选项 
+//这两个线程属性并没有包含在pthread_attr_t中，它俩影响着线程调用pthread_cancel时所呈现的行为。
+	3.1 可取消状态	PTHREAD_CANCEL_ENABLE(默认) PTHREAD_CANCEL_DISENABLE
+	int pthread_setcancelstate(int state,int *oldstate);//设置
+	//当将可取消状态设置 PTHREAD_CANCEL_DISENABLE时，对线程调用pthread_cancel,取消请求相对于线程来说还处于挂起状态。
+	当取消状态再次转变为PTHREAD_CANCEL_ENABLE后，线程将在下一个取消点上对所有的挂起的取消请求进行响应。
+	
+	int pthread_testcancle(void);//添加取消点
+	
+	
+	3.2 可取消类型	
+
+	
+4.线程和信号
+	4.1 每个线程都有自己的信号屏蔽字,但是信号的处理是进程中的线程所共享的(又引出了针对信号处理例程的同步问题)
+	
+	int pthread_sigmask(int know,const sigset_t *restrict set,
+						sigset_t *restrict oset);//与sigpromask的不同：pthread_sigmask工作在线程中，失败时返回错误码而不是设置errno=-1，
+	int sigwait(const sigset_t *set,int *restrict signop);//set参数指定了线程要等待的信号集，返回时，signop指向的整数将包含发送信号的数量
+	//如果信号集中的某个信号在sigwait调用的时候处于挂起状态，那么sigwait将无阻塞地返回，在返回之前，sigwait将从进程中移除那些处于挂起等待状态的信号。
+	
+	int pthread_kill(pthread_t *tid，int signo);//将信号发送给线程
+
+5. 线程和fork
+	当线程调用fok，就为子进程创建了整个进程地址空间的副本
+	
+	子进程通过继承整个地址空间的副本，还从父进程那儿继承了每个互斥量、读写锁、和条件变量的状态。如果父进程包含一个以上线程，子进程在fork之后，如果紧接着不马上调用execl的话，就需要清理锁状态。
+	
+	int pthread_atfork(void (*prepare)(void),void (*parent)(void),
+						void (*child)(void));
+						
+	prepare fork函数用于父进程在调用fork之前获取其定义的所有锁
+	
+	parent fork处理程序是在fork创建子进程以后、返回之前，在父进程上下文中调用的。这个fork处理程序的任务是对prepare fork处理程序获取的所有的锁进行解锁。
+	
+	child fork处理程序在fork返回之前在子进程上下文中调用，与parent fork处理程序一样，child fork处理程序也必须释放prepare fork处理程序获取的所有的锁。
+	
+	
+6. 线程和I/O
+	 ssize_t pread(int fd, void *buf, size_t count, off_t offset);//从文件偏移offset开始，读取count个字节到buffer中去
+     ssize_t pwrite(int fd, const void *buf, size_t  count,  off_t  offset);//将缓冲区buf中的count个字节写到文件中去，写入的起始位置为offset
+	 
+	 
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
