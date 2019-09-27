@@ -1,0 +1,203 @@
+1. 非阻塞I/O  非阻塞I/O并不是不阻塞，(而是一定不会永久阻塞).当发出I/O操作，若不能完成，则调用立即出错返回，表示该操作继续则会阻塞。
+	对于一个给定的描述符，指定非阻塞的方法：
+		1.1 O_NONBLOCK 的标志调用open获得描述符
+		1.2 对于已打开的一个描述符，调用fcntl，由该函数打开 O_NONBLOCK 标志
+
+2. 记录锁 由于多个文件可共同编辑一个文件，但是像数据库，要确保它在单独写一个文件，为了向进程提供此种功能，商用unix系统提供了记录锁机制
+	(字节范围锁):使用记录锁可以阻止其他进程修改同一文件区，它锁定文件中的一个区域,也可能是整个文件
+	2.1 fcntl锁
+		int fcntl(int fd,int cmd,.../* struct flock *flockptr */);
+		cmd:
+			F_GETLK
+			F_SETLK
+			F_SETLKW
+		struct flock
+		{
+			short l_type;	/* F_RDLCK、F_WRLCK、F_UNLCK */
+			
+			//要加锁或解锁区域的起始字节偏移量
+			short l_whence;	/* SEEK_SET、SEEK_CUR、SEEK_END */	
+			off_t start;	/* offset in bytes,relative to whence */
+			
+			//区域的字节长度
+			off_t l_len;	/* length iin bytes,0 means lock to EOF */
+			
+			//id为pid的进程持有的锁能阻塞当前进程
+			off_t l_pid;	/* returned with F_GETLK */
+		};
+		
+		2.1.1：如果在一个给定的字节上已经有一或多个读锁，则不能在该字节上再加写锁。
+		
+		2.1.2: 此规则只在多进程之间遵守，单个进程则不适用，如果一个进程对 一个文件区域已经有了一把锁，后来该进程又企图在同一文件区间再加一把锁。那么新锁将替换已有锁。(即使锁的类型不相同)
+		
+		2.1.3: 加读锁时，该描述符必须是读打开的，加写锁时，该描述符必须是写打开的。
+		
+		2.1.4: 锁的隐含继承和释放
+			(1):锁与进程和文件关联：
+				2.1.4.1：当一个进程终止时，它所建立的锁全部释放
+				2.1.4.2：无论一个描述符何时关闭，该进程通过这一描述符引用的文件上的任何一把锁(这些锁都是该进程设置的)都会释放
+			(2):由fork产生的子进程不继承父进程所设置的锁，这意味着，若一个进程得到一把锁，然后调用fork，那么对父进程获得的锁而言，子进程被视为另一个进程。对于通过fork从父进程继承过来的描述符，子进程需要调用fcntl才能获得它自己的锁。
+			
+			(3):在执行exec后，新程序可以继承原执行程序的锁，但是注意，如果对一个文件描述符设置执行时关闭，那么当作为exec的一部分关闭该文件描述符时，将释放相应文件的所有锁。
+
+	
+（轮询：将描述符设置为非阻塞的，read读数据，没有数据立即返回(不block),等待一段时间，继续读。缺点：浪费cpu时间，等待时间的设置的合法性不确定）
+
+3. I/O多路转接
+	引入：一般的应用情形，while(read()==ok) {write();}，但是，如果是if (read1()== ok && read2() == OK) then write();/若read1()阻塞了，那么read2就不能工作了，所以就引入了多路转接
+
+	I/O多路转接技术:先构造一张我们感兴趣的文件描述符列表，然后调用一个函数，直到这些描述符中的一个已经准备好进行I/O,该函数才会返回。
+	
+	从(poll、pselect、select)这些函数返回时，进程会被告知哪些描述符已经准备好了可以进行I/O。
+
+void FD_CLR(int fd, fd_set *set);
+int  FD_ISSET(int fd, fd_set *set);
+void FD_SET(int fd, fd_set *set);
+void FD_ZERO(fd_set *set);
+
+int select(int nfds, fd_set *readfds, fd_set *writefds,fd_set *exceptfds, struct timeval *timeout);
+1. 是否想从一个文件描述符读
+2. 是否想写一个文件描述符
+3. 是否关心一个文件描述符
+4. 愿意等待多长时间
+	4.1 timeout == NUL;//无限等待，若等到一个准备好的描述符或捕捉到一个信号，则返回-1,errno = EINTER
+	4.2 timeout->tv_sec == 0 && timeout->tv_nsec == 0,测试所有指定的描述符并立即返回(这是不阻塞的方法)
+	4.3 timeout->tv_sec != 0 || timeout->tv_nsec != 0,...,可被信号中断
+	4.4 若三个fd_set都是NULL,则select就是更精确的sleep
+	4.5 nfds = max(readfds,writefds,exceptfds) + 1;
+	
+
+//返回值
+1. 已准备好的描述符的总量(三描述符集中准备好的和)
+2. 哪一个描述符准备好了
+
+//何为准备好？
+对于异常条件来说：若异常条件描述符集中有一个未决异常条件，则认为此描述符是准备好的。
+
+int pselect(int nfds, fd_set *readfds, fd_set *writefds,fd_set *exceptfds, const struct timespec *timeout,
+		   const sigset_t *sigmask);
+	
+	//与select的与异常：提供对信号的屏蔽，返回的时候恢复信号屏蔽字为之前设置的。
+		   
+		   
+int poll(struct pollfd *fds, nfds_t nfds, int timeout);
+int ppoll(struct pollfd *fds, nfds_t nfds,const struct timespec *timeout_ts, const sigset_t *sigmask);
+	//不同于select的描述符集，poll使用构造的pollfd数组，数组中的每一个元素指定一个描述符编号以及我们对该描述符集感兴趣的条件
+	1.
+	struct pollfd
+	{
+		int fd;
+		short events;	//告诉内核我们关心的fd上哪些事件
+		short revents;  //内核设置revents,表明该fd上发生了哪些事件
+	};
+	
+	2. nfds指定数组元素个数
+	
+	3. timeout 
+			== -1;永久等待
+			== 0; 不等待。测试所有描述符并立即返回
+			 > 0;  ...
+				   
+4. 异步I/O：进程告知内核，当描述符集准备好可以进行I/O后时，用一个信号通知该进程
+		缺点：该信号相对于进程只有一个（SIGIO..),若是有两个描述符集，进程却不知道该信号是哪一个描述符集准备好了。
+		
+	4.1 POSIX异步I/O
+	struct aiocb
+	{
+		int 			aio_fildes;		//被打开用来读或写的文件描述符
+		off_t 			aoi_offset;		// file offset for I/O
+		volatile void 	*aio_buf;		// buffer for I/O
+		size_t 			aio_nbytes;		//
+		int 			aio_reqprio;	//priority
+		struct sigevent	aio_sigevent;	//signal information
+		int 			aio_lio_opcode; //operaton for list I/O
+	};
+		
+		
+		
+5. readv、writev  :用于在一次函数调用中读、写多个非连续缓冲区
+ssize_t readv(int fd,const struct iovec *iov,int iovcnt);//输入顺序：iov[0],iov[1],...，且总是填满一个缓冲区再往下
+ssize_t writev(int fd,const struct iovec*iov,int iovcnt);//输出顺序：iov[0],iov[1],...
+	struct iovec
+	{
+		void *iov_base;	//缓冲区起始地址
+		size_t iov_len; //缓冲区大小
+	};
+	
+	iovcnt:缓冲区数组元素大小
+
+6.readn、writen		:读、写指定字节数的数据，并处理返回可能小于要求值得情况
+
+ssize_t readn(int fd,void *buf,size_t nbytes);
+ssize_t writen(int fd,void *buf,size_t nbytes);
+
+
+
+7. 存储映射I/O	(mmap):
+/*
+能将一个磁盘文件映射到存储空间中的一个缓冲区上，
+于是，当从缓冲区取数据时，就相当于读文件中的相应的字节.将数据写入缓冲区，相应字节就自动写入文件，
+这样，就可以在不使用read和write的情况下执行I/O
+*/
+
+	7.1 为了使用这种功能，应首先告诉内核将一个给定的文件映射到一个存储区域中。
+		int *mmap(void *addr,size_t len,int prot,int flag,int fd,off_t off);
+			
+			addr:指定映射存储区的起始地址
+			
+			fd:  指定要被映射的文件描述符
+			
+			prot:指定了映射存储区的保护要求（可以按位或组合，权限不能超过open打开文件的权限）
+			
+				PROT_READ 映射存储区可读
+				PROT_WRITE 映射存储区可写
+				PROT_EXEC 映射存储区可执行
+				PROT_NONE 映射存储区不可访问
+			
+			flag:
+				MAP_FIXED: 	返回值必须等于addr,
+				MAP_SHARED:	这一标志描述了本进程对映射区所进行的存储操作的配置。
+						此标志指定存储操作修改映射文件，也就是，存储操作相当于对该文件write.
+						
+				MAP_PRIVATE:对映射区的存储操作导致创建该映射文件的一个私有副本，所有后来对该映射区的引用都是引用该副本。
+				
+			off：要映射的文件的起始处距离文件的开头的间距。
+			
+			len:要映射的文件内容的长度
+		
+		int mprotect(void *addr,size_t len,int prot);//用于修改一个映射的权限
+		int msync(void *addr,size_t len,int flags); //如果已经修改了映射，则调用此函数将修改冲洗到被映射的文件中
+			flags:
+				MS_SYNC:同步完成再返回
+				MS_ASYNC:调用后立即返回
+				MS_INVALIDATE:丢弃未与底层存储器同步的页
+				
+		int munmap(void *addr,size_t len);	//接触存储映射区的映射。
+	
+		
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
