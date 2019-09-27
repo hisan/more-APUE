@@ -1,1 +1,24 @@
 #如何控制线程形为！
+
+
+属性对象：
+
+1.初始化属性对象
+2.销毁属性对象
+3.获取属性值
+4.设置属性值
+
+int pthread_attr_init(pthread_attr_t *attr);
+int pthread_attr_destroy(pthread_attr_t *attr);
+
+int pthread_attr_setdetachstate(const pthread_attr_t *restrict attr, int &detachstate);
+int pthread_attr_getdetachstate(pthread_attr_t *attr,int *detachstate);
+
+对线程栈属性进行管理		(因为同一进程的所有线程要共享固定大小的虚地址空间)
+int pthread_attr_getstack(const pthread_attr_t *restrict attr,
+							void **restrict stackaddr,
+							size_t *restrict stacksize);
+							
+int pthread_attr_setstack(pthread_attr_t *attr,
+							void *stackaddr,
+							size_t stacksize);//改变新建线程的栈位置
