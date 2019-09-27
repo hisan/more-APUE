@@ -1,0 +1,27 @@
+unix域套接字机制
+
+相比因特网套接字的有点：
+	1. 不执行协议处理
+	2. 不需要增删网络报文
+	3. 不需要计算校验和
+	4. 不产生顺序号
+	5. 无需发送确认报文
+	6. unix域数据报服务是可靠的，既不会丢失报文，也不会传递出错
+ 
+int socketpair(int domain,int type,int protocol,int sockfd[2]);
+//创建一对无命名(意味着无关进程不能使用它们)的、相互连接的unix域套接字。(可起到全双工管道的作用)
+
+struct sockaddr_un
+{
+	sa_family_t sun_family;
+	char 		sun_path[108];
+};
+
+struct sockaddr_un
+{
+	unsigned char sun_len;
+	sa_family_t   sun_family;
+	char 		  sun_path[104];
+	//当我们将一个地址绑定到一个UNIX域套接字时，系统会用该路径名创建一个S_IFSOCK类型的文件
+	//该文件仅用于向客户进程告示套接字名字。该文件无法打开，也不能由应用程序用于通信
+};
