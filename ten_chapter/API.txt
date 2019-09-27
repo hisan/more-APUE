@@ -1,1 +1,47 @@
 void (*signal(int signo,void (*func)(int)))(int);
+
+
+sigset_t 信号屏蔽字
+
+int kill(pid_t pid,int signo);	//允许进程将信号发送给进程或进程组
+1.pid = 0，将信号发送给与发送进程同一进程组的所有进程
+2.pid = -1,将信号发送给发送进程有权限向它们发送信号的所有进程。
+3.pid < 0,绝对值
+
+发送权限：发送进程的rid或者eid等于接收进程rid或者eid
+
+int raise(int signo);//允许进程向自身发送信号
+unsigned int alarm(unsigned int seconds);//会设置一个定时器，当定时器超时后，会产生一个SIGALRM信号，默认动作是终止调用该alarm函数的进程
+1.每个进程只能有一个闹钟时间，若再次调用alarm之前，之前已为该进程注册的闹钟时间还没有超时，则该闹钟时间的余留值作为本次alarm函数调用的值返回。
+2.如果之前设置的闹钟超时时间大于本次设置值，则用本次时间重置此闹钟
+
+
+int	pause(void);//使线程or进程睡眠，直到一个终止进程或者触发一个信号捕捉函数的信号(捕捉到一个信号)到达。
+
+
+信号集
+int sigemptyset(sigset_t *set);
+int sigfillset(sigset_t *set);
+int sigaddset(sigset_t *set,int signo);
+int sigdelset(sigset_t *set,int signo);
+int sigismember(sigset_t *set,int signo);
+
+//逗号运算符
+逗号运算符是指在C语言中，多个表达式可以用逗号分开，其中用逗号分开的表达式的值分别结算，但整个表达式的值是最后一个表达式的值。
+
+#define sigemptyset(ptr) (*(ptr) = 0)
+#define sigfillset(ptr)  (*(ptr) = ~(sigset_t)0,0)
+
+信号屏蔽字：规定了当前阻塞而不能传递给该进程的信号集
+
+int sigprocmask(int how,sigset_t *restrict set,sigset_t *restrict oset);//仅为单线程进程定义的
+//how:(set != NULL)
+SIG_BLOCK	oset |= set
+SIG_UNBLOCK	oset &= set
+SIG_SETMASK oset = 0;oset |= set;
+
+int sigpending(sigset_t *set);//通过set返回进程的未决信号集
+
+
+
+
