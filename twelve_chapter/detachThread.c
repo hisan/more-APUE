@@ -16,7 +16,7 @@ int makethread(void *(*fn)(void*),void *arg)
 	err = pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_DETACHED);
 	if (err == 0)
 	{
-		err = pthread_create(&tid,attr,fn,arg);
+		err = pthread_create(&tid,&attr,fn,arg);
 	}
 	
 	pthread_attr_destroy(&attr);

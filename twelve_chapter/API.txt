@@ -15,10 +15,62 @@ int pthread_attr_setdetachstate(const pthread_attr_t *restrict attr, int &detach
 int pthread_attr_getdetachstate(pthread_attr_t *attr,int *detachstate);
 
 对线程栈属性进行管理		(因为同一进程的所有线程要共享固定大小的虚地址空间)
+//手动
 int pthread_attr_getstack(const pthread_attr_t *restrict attr,
 							void **restrict stackaddr,
-							size_t *restrict stacksize);
-							
+							size_t *restrict stacksize);							
 int pthread_attr_setstack(pthread_attr_t *attr,
 							void *stackaddr,
-							size_t stacksize);//改变新建线程的栈位置
+							size_t stacksize);//改变新建线程的栈位置|stackaddr指定线程的内存范围中的最低可寻址地址|
+//半自动
+int pthread_attr_getstacksize(const pthread_attr_t *restrict attr,
+										size_t *restrict stacksize);
+int pthread_attr_setstacksize(pthread_attr_t *attr,size_t stacksize);//希望改变默认的栈的大小，但是又不想自己处理线程的分配问题
+
+//控制线程栈末尾之后用以避免栈溢出的扩展内存的大小
+int pthread_attr_getguardsize(const pthread_attr_t *restrict attr,
+							size_t *restrict guardsize);
+int pthread_attr_setguardsize(pthread_attr_t *attr,size_t guardsize);
+
+
+
+同步属性
+1.互斥量属性	(进程共享属性、健壮属性、类型属性)
+	pthread_mutexattr_t 
+int pthread_mutexattr_init(pthread_mutexattr_t *mutexattr);		//用默认的互斥量属性初始化互斥量属性结构mutexattr
+int pthread_mutexattr_destroy(pthread_mutexattr_t *mutexattr);
+
+int pthread_mutexattr_getshared(const pthread_mutexattr_t *restrict attr,
+							int *restrict pshared);//获取进程共享属性
+							
+int pthread_mutexattr_setshared(pthread_mutexattr_t *attr,
+							int pshared);//修改进程共享属性
+
+
+2.读写锁属性
+3.条件变量属性
+4.屏障属性
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
