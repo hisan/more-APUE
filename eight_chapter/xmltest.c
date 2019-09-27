@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdarg.h>
 #include<libxml/parser.h>
 
 #define CAST (const xmlChar*)
@@ -9,7 +10,7 @@
 #define ERR 0
 #define OK  1
 
-#define NAMELEN 80
+#define NAMELEN 120
 
 typedef struct st_map
 {
@@ -19,6 +20,25 @@ typedef struct st_map
 }NameValue;
 
 NameValue *pNameMap;
+
+void XmlPropVarArgFree(int count,...)
+{
+	va_list ap;
+	xmlChar* temppro = NULL;
+	int i = 0;
+	
+	va_start(ap, count);
+	while(i < count)
+	{
+		temppro = va_arg(ap, xmlChar*);
+		if (temppro != NULL)
+		{
+			xmlFree(temppro);
+		}
+		i++;
+	}
+	va_end(ap);
+}
 
 int MapInit(NameValue *pNameMap)
 {
@@ -168,21 +188,12 @@ int TransDocToContentTxt(const char *filename,const char *xmlfilename)
 		
 		memset(tempbuf,0,sizeof(char)*200);
 		
-		sprintf(tempbuf,"Name:%s Address:%s Tel:%s Sal:%s Time:%s Scale:%s Two-day-w:%s \
-		One-day-w:%s",pName,pAddr,pTel,pSal,pTime,pScale,pTd,pOd);
+		sprintf(tempbuf,"Name:%s Address:%s Tel:%s Sal:%s Time:%s Scale:%s Two-day-w:%s One-day-w:%s",
+		pName,pAddr,pTel,pSal,pTime,pScale,pTd,pOd);
 		tempbuf[strlen(tempbuf)] = '\n';
 		
 		fputs(tempbuf,fp);
-		
-		xmlFree(pName);
-		xmlFree(pAddr);
-		xmlFree(pTel);
-		xmlFree(pSal);
-		xmlFree(pTime);
-		xmlFree(pScale);
-		xmlFree(pTd);
-		xmlFree(pOd);
-		
+		XmlPropVarArgFree(8,pName,pAddr,pTel,pSal,pTime,pScale,pTd,pOd);
 		cur = cur->next;
 	}
 	
@@ -321,7 +332,7 @@ int main()
 	xmlSaveFileEnc(argv2,doc,"UTF-8");
 	free(pNameMap);
 	
-	TransDocToContentTxt("allInfo.txt",argv2);
+	//TransDocToContentTxt("allInfo.txt",argv2);
 	
 	return 0;
 }
