@@ -60,6 +60,16 @@ struct sigaction
 
 
 
+在信号处理程序中经常调用longjmp函数以返回程序的主循环，而不是从该处理程序返回
+但是,在信号捕获函数捕获到这个信号后,此信号会被加入信号屏蔽字（防止之后该信号中断信号处理程序），
+但是一个问题，若在信号处理程序中使用longjmp函数跳出信号处理例程，则信号屏蔽字没有恢复，就会导致问题。
+
+因此引出：
+int sigsetjmp(sigjmp_buf env,int savemask);//若savemask!=0,则保存当前进程的信号屏蔽字
+void siglongjmp(sigjmp_buf env,int val);	//若env！=0，则将env用于恢复当前信号屏蔽字
+
+
+
 
 
 
