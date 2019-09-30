@@ -41,7 +41,7 @@ int pthread_mutexattr_init(pthread_mutexattr_t *mutexattr);		//用默认的互�
 int pthread_mutexattr_destroy(pthread_mutexattr_t *mutexattr);
 
 
-	1.1.进程共享属性
+	1.1.进程共享属性	( 被单个进程的线程共享-- PTHREAD_PROCESS_SHARED、还是被多进程的线程共享-- PTHREAD_PROCESS_PRIVATE )
 int pthread_mutexattr_getshared(const pthread_mutexattr_t *restrict attr,
 							int *restrict pshared);//获取进程共享属性
 							
@@ -64,25 +64,38 @@ int pthread_mutex_consistent(pthread_mutex_t *mutex);
 为了避免这样的问题。线程可以调用 pthread_mutex_consistent函数，指明与该互斥量相关的状态在互斥量解锁之前是一致的。
 如果线程没有先调用pthread_mutex_consistent就对互斥量进行解锁，那么其他试图获取该互斥量的线程就会得到错误码ENOTRECOVERABLE。
 如果发生这种情况，互斥量将不再可用。线程可以通过提前调用pthread_mutex_consistent，能让互斥量正常工作，这样它就可被持续使用。
-
+	
+	1.3.类型属性
 int pthread_mutexattr_gettype(const pthread_mutexattr_t *restrict mutex,int *restrict type);//得到互斥量类型
 int pthread_mutexattr_settype(pthread_mutexattr_t *restrict mutex,int type);//得到互斥量类型
 
 
-
-
-
-	1.3.类型属性
-
-
-2.读写锁属性
-
-
+2.读写锁属性(读写锁支持的唯一属性是进程共享属性)
+	int pthread_rwlockattr_init(pthread_rwlockattr_t *attr);
+	int pthread_rwlockattr_destory(pthread_rwlockttr_t *attr);
+	
+	int pthread_rwlockattr_getshared(const pthread_rwlockattr_t *restrict attr,int *restrict attr);
+	int pthread_rwlockattr_setshared(pthread_rwlockattr_t *attr,int pshared);
+	
 3.条件变量属性
-
-
+	int pthread_condattr_init(pthread_condattr_t *conattr);
+	int pthread_condattr_destory(pthread_condattr_t *conattr);
+	
+	int pthread_condattr_getpshared(const pthread_condattr_t *restrict attr,int *restrict pshared);
+	int pthread_condattr_setpshared(pthread_condattr_t *attr,int pshared);
+	
+	int pthread_condattr_getlock(const pthread_condattr_t *restrict attr,clockid_t *restrict clock_id);
+	int pthread_condattr_setlock(pthread_condattr_t *attr,clockid_t clock_id);
+	
+	
 4.屏障属性
-
+	int pthread_barrierattr_init(const pthread_barrierattr_t *restrict attr);
+	int pthread_barrierattr_desory(pthread_barrierattr_t *attr);
+	
+	int pthread_barrierattr_getshared(const pthread_barrierattr_t *restrict attr，int *restrict pshared);
+	int pthread_barrierattr_setshared(pthread_barrierattr_t *restrict attr，int *restrict pshared);
+	
+	
 
 
 
