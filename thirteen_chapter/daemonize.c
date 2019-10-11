@@ -70,37 +70,14 @@ void daemonize(const char *cmd)
 	if (fd0 != 0 || fd1 != 1 || fd2 != 2)
 	{
 		syslog(LOG_ERR,"unexpected file descriptor %d %d %d",
-			fd0,fd1,fd2);
-			exit(1);
+		fd0,fd1,fd2);
+		exit(1);
 	}	
 }
 
+//
 int main(void)
 {
 	daemonize("daemonize");
 	sleep(1000000);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
