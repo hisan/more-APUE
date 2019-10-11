@@ -69,6 +69,7 @@ int sigsetjmp(sigjmp_buf env,int savemask);//若savemask!=0,则保存当前进�
 void siglongjmp(sigjmp_buf env,int val);	//若env！=0，则将env用于恢复当前信号屏蔽字
 
 
+void abort(void);//使程序异常终止(将SIGABRT信号发送给调用进程
 
 
 
