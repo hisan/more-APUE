@@ -36,12 +36,13 @@ int sigismember(sigset_t *set,int signo);
 
 int sigprocmask(int how,sigset_t *restrict set,sigset_t *restrict oset);//仅为单线程进程定义的
 //how:(set != NULL)
-SIG_BLOCK	realsignmask = (oset | set)
-SIG_UNBLOCK	realsignmask = (oset & set)
-SIG_SETMASK realsignmask = set
+SIG_BLOCK	realsignmask = (当前阻塞信号 | set)
+SIG_UNBLOCK	realsignmask = (当前阻塞信号 & set)
+SIG_SETMASK realsignmask = (当前阻塞信号 = set)
+
+若 oset ！= NULL,则将设置set之前的当前阻塞信号赋值给oset.
 
 int sigpending(sigset_t *set);//通过set返回进程的未决信号集
-
 
 int sigaction(int signo,const struct sigatcion *restrict act,
 					struct sigaction *restrict oact);
@@ -68,8 +69,19 @@ struct sigaction
 int sigsetjmp(sigjmp_buf env,int savemask);//若savemask!=0,则保存当前进程的信号屏蔽字
 void siglongjmp(sigjmp_buf env,int val);	//若env！=0，则将env用于恢复当前信号屏蔽字
 
+int sigsuspend(const sigset_t *sigmask) 
+	暂时用信号集sigmask代替调用进程的信号集，直到收到一个唤醒一个信号例程或者杀死一个进程的信号。
+       如果收到的信号终止了这个进程，则sigsuspend() 就不返回.  如果这个信号被捕获,  则sigsuspend()返回
+       在信号处理例程返回后, 信号屏蔽字就恢复为调用suspend之前的水平。
 
-void abort(void);//使程序异常终止(将SIGABRT信号发送给调用进程
+void abort(void);//使程序异常终止(将SIGABRT信号发送给调用进程)
+	让进程捕捉SIGABRT的意图是：在进程终止之前由其执行所需的清理操作，如果进程不在信号处理例程终止自己，POSIX.1声明当信号处理程序返回时，abort终止该进程。
+
+
+void psignal(int signo,const char *msg);	//通过提供的signo,得到它的处理程序的程序名（msg指向)并输出到标准错误文件
+
+void psiginfo(const siginfo_t *info,const char *msg);//x
+
 
 
 
